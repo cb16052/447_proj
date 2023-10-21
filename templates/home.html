@@ -11,6 +11,13 @@
 		<li><a href="/register">Create account</a></li>
 	</ul>
 	</nav>
+	{% with messages = get_flashed_messages() %}
+	{% if messages %}
+    <div style="display: inline; background-color: red;">
+        {{ messages[0] }}
+	</div>
+	{% endif %}
+	{% endwith %}
 	{% if current_user.is_authenticated %}
 	<h1>You are logged in</h1>
 	<a href="/logout">Logout</a>

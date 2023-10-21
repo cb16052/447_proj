@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, url_for, redirect
+from flask import Flask, render_template, request, url_for, redirect, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -50,9 +50,11 @@ def login():
 	if request.method == "POST":
 		user = Users.query.filter_by(
 			email=request.form.get("email")).first()
-		if check_password_hash(user.password, request.form.get("password")):
-			login_user(user)
-			return redirect(url_for("studies"))
+		if not (user and check_password_hash(user.password, request.form.get("password"))) :
+			flash("Bad login.  Try again.")
+			return redirect(url_for("home"))
+		login_user(user)
+		return redirect(url_for("studies"))
 	return render_template("login.html")
 
 @app.route("/logout")
