@@ -6,6 +6,13 @@
 </head>
 <body>
 	<nav>
+		{% with messages = get_flashed_messages() %}
+		{% if messages %}
+		<div style="display: inline; background-color: red;">
+			{{ messages[0] }}
+		</div>
+		{% endif %}
+		{% endwith %}
 	<ul>
 		<li><a href="/login">Login</a></li>
 		<li><a href="/register">Create account</a></li>

@@ -9,6 +9,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite"
 app.config["SECRET_KEY"] = "fpoijaf984qiub98rtbnusp9uwrnb150vmpautj"
 
 login_manager = LoginManager()
+login_manager.login_view = "home"
 login_manager.init_app(app)
 
 db.init_app(app)
@@ -30,7 +31,11 @@ def home():
 @app.route('/register', methods=["GET", "POST"])
 def register():
 	if request.method == "POST":
-		user = User(email=request.form.get("email"),
+		new_email = request.form.get("email")
+		if new_email == User.query.filter_by(email=request.form.get("email")).first().email:
+			flash("Email exists.  Please login")
+			return redirect(url_for("login"))
+		user = User(email=new_email,
 			   		name=request.form.get("name"),
 					password=generate_password_hash(request.form.get("password"), method='scrypt'))
 		db.session.add(user)
