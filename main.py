@@ -1,7 +1,8 @@
 from flask import Flask, render_template, request, url_for, redirect, flash
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from models import db, User
+from models import db, User, Study
+import yfinance as yf
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite"
@@ -16,10 +17,11 @@ db.init_app(app)
 with app.app_context():
 	db.create_all()
 
-
 @login_manager.user_loader
 def loader_user(user_id):
 	return User.query.get(user_id)
+
+
 
 @app.route("/")
 def home():
@@ -41,7 +43,7 @@ def login():
 	if request.method == "POST":
 		user = User.query.filter_by(
 			email=request.form.get("email")).first()
-		if not (user and check_password_hash(user.password, request.form.get("password"))) :
+		if not (user and check_password_hash(user.password, request.form.get("password"))):
 			flash("Bad login.  Try again.")
 			return redirect(url_for("home"))
 		login_user(user)
@@ -53,10 +55,21 @@ def logout():
 	logout_user()
 	return redirect(url_for("home"))
 
-@app.route('/studies')
+@app.route("/studies")
 @login_required
 def studies():
-    return render_template('studies.html', name=current_user.name)
+	studies = Study.query.filter_by(user_id=current_user.id).all()
+	return render_template('studies.html', studies=studies, name=current_user.name)
+
+@app.route("/add_study", methods=["GET", "POST"])
+@login_required
+def add_study():
+	if request.method == "POST":
+		newstudy = Study(user_id=current_user.id, ticker=request.form.get("ticker"))
+		db.session.add(newstudy)
+		db.session.commit()
+		return redirect(url_for("studies"))
+	return render_template('add_study.html')
 
 if __name__ == "__main__":
 	app.run()

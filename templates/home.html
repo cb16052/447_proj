@@ -5,12 +5,8 @@
 	<title>Home</title>
 </head>
 <body>
-	<nav>
-	<ul>
-		<li><a href="/login">Login</a></li>
-		<li><a href="/register">Create account</a></li>
-	</ul>
-	</nav>
+	{% include "nav.html" %}
+	
 	{% with messages = get_flashed_messages() %}
 	{% if messages %}
     <div style="display: inline; background-color: red;">
