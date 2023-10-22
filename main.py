@@ -1,23 +1,14 @@
 from flask import Flask, render_template, request, url_for, redirect, flash
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
+from models import db, User
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite"
 app.config["SECRET_KEY"] = "fpoijaf984qiub98rtbnusp9uwrnb150vmpautj"
-db = SQLAlchemy()
 
 login_manager = LoginManager()
 login_manager.init_app(app)
-
-
-class Users(UserMixin, db.Model):
-	id = db.Column(db.Integer, primary_key=True)
-	email = db.Column(db.String(250), unique=True, nullable=False)
-	name = db.Column(db.String(250))
-	password = db.Column(db.String(250), nullable=False)
-
 
 db.init_app(app)
 
@@ -28,7 +19,7 @@ with app.app_context():
 
 @login_manager.user_loader
 def loader_user(user_id):
-	return Users.query.get(user_id)
+	return User.query.get(user_id)
 
 @app.route("/")
 def home():
@@ -37,7 +28,7 @@ def home():
 @app.route('/register', methods=["GET", "POST"])
 def register():
 	if request.method == "POST":
-		user = Users(email=request.form.get("email"),
+		user = User(email=request.form.get("email"),
 			   		name=request.form.get("name"),
 					password=generate_password_hash(request.form.get("password"), method='scrypt'))
 		db.session.add(user)
@@ -48,7 +39,7 @@ def register():
 @app.route("/login", methods=["GET", "POST"])
 def login():
 	if request.method == "POST":
-		user = Users.query.filter_by(
+		user = User.query.filter_by(
 			email=request.form.get("email")).first()
 		if not (user and check_password_hash(user.password, request.form.get("password"))) :
 			flash("Bad login.  Try again.")
